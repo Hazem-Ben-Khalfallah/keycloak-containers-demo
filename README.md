@@ -28,8 +28,7 @@ Then build the image with:
 
 Finally run it with:
 
-    docker run --name demo-keycloak -e KEYCLOAK_USER=admin -e KEYCLOAK_PASSWORD=admin \
-        -p 8080:8080 --net demo-network demo-keycloak
+    docker run --name demo-keycloak -e KEYCLOAK_ADMIN=admin -e KEYCLOAK_ADMIN_PASSWORD=admin -e KC_HTTP_RELATIVE_PATH=/auth -p 8080:8080 --net demo-network demo-keycloak start-dev
 
 ### Start LDAP server
 
@@ -62,7 +61,7 @@ First build the image with:
     
 Then run it with:
 
-    docker run --name demo-js-console -p 8000:80 demo-js-console
+    docker run --name demo-js-console -p 9001:80 demo-js-console
 
 
 
@@ -88,8 +87,8 @@ Fill in the following values:
 
 On the next form fill in the following values:
 
-* Valid Redirect URIs: `http://localhost:8000/*`
-* Web Origins: `http://localhost:8000`
+* Valid Redirect URIs: `http://localhost:9001/*`
+* Web Origins: `http://localhost:9001`
 
 ## Configuring SMTP server
 
@@ -123,7 +122,7 @@ Fill in the following values:
 * User registration: `ON`
 * Verify email: `ON`
 
-To try this out open the [JS Console](http://localhost:8000). 
+To try this out open the [JS Console](http://localhost:9001). 
 
 You will be automatically redirected to the login screen. Click on `Register` 
 and fill in the form. After registering you will be prompted to verify your email
@@ -140,7 +139,7 @@ claims to tokens.
 First open `Users` and select the user you registered earlier. Click on attributes and the following attribute:
 
 * Key: `avatar_url`
-* Value: `https://www.keycloak.org/resources/images/keycloak_logo_480x108.png`
+* Value: `https://ca.slack-edge.com/TDP4HJU4S-UESCGE2BV-7268fe295380-512`
 
 Click `Add` followed by `Save`.
 
@@ -186,7 +185,7 @@ Open the [Keycloak Admin Console](http://localhost:8080/auth/admin/).
 
 Go to `Clients`, select `JS Console` and turn on `Consent Required`. 
 
-Go back to the [JS Console](http://localhost:8000) and click `Login` again. Now Keycloak will prompt the user to grant 
+Go back to the [JS Console](http://localhost:9001) and click `Login` again. Now Keycloak will prompt the user to grant 
 access to the application.
 
 You may want to turn this off again before continuing.
@@ -213,7 +212,7 @@ Click on `Roles` and `Add Role`. Set the Role Name to `user` and click `Save`.
 Now click on `Users` and find the user you want to login with. Click on `Role Mappings`. 
 Select `user` from Available roles and click `Add selected`.
 
-Go back to the [JS Console](http://localhost:8000) and click `Refresh`, then `Access Token JSON`.
+Go back to the [JS Console](http://localhost:9001) and click `Refresh`, then `Access Token JSON`.
 Notice that there is a `realm_access` claim in the token that now contains the user role.
 
 Next let's create a Group. Go back to the [Keycloak Admin Console](http://localhost:8080/auth/admin/).
@@ -243,7 +242,7 @@ Fill in the following values:
 
 Find the `js-console` client again and add the `myscope` as a default client scope.
 
-Go back to the [JS Console](http://localhost:8000) and click `Refresh`, then `Access Token JSON`.
+Go back to the [JS Console](http://localhost:9001) and click `Refresh`, then `Access Token JSON`.
 Notice that there is a `groups` claim in the token as well as a `user_type` claim.
 
 ## Users from LDAP
@@ -268,7 +267,7 @@ Click on `Save` then click on `Synchronize all users`.
 Now go to `Users` and click `View all users`. You will see two new users `bwilson` and
 `jbrown`. Both these users have the password `password`.
 
-Try opening the [JS Console](http://localhost:8000) again and login with one of
+Try opening the [JS Console](http://localhost:9001) again and login with one of
 these users.
 
 ## Users from GitHub
@@ -304,7 +303,7 @@ Fill in the following values:
 * Social Profile JSON Field Path: `avatar_url`
 * User Attribute Name: `avatar_url`
 
-Try opening the [JS Console](http://localhost:8000) again and instead of providing
+Try opening the [JS Console](http://localhost:9001) again and instead of providing
 a username or password click on `GitHub`.
 
 Notice how it automatically knows your name and also has your avatar.
@@ -322,7 +321,7 @@ Open the [Keycloak Admin Console](http://localhost:8080/auth/admin/).
 Click on `Realm Settings` then `Themes`. In the drop-down under `Login Theme` select
 `sunrise`.
 
-Try opening the [JS Console](http://localhost:8000) to login a take in the beauty of the
+Try opening the [JS Console](http://localhost:9001) to login a take in the beauty of the
 new login screen!
 
 You may want to change it back before you continue ;).
@@ -337,12 +336,12 @@ any impact to users.
 
 Let's first try to change the signing algorithm for the JS console client.
 
-First let's see what algorithm is currently in use. Open the [JS Console](http://localhost:8000), 
+First let's see what algorithm is currently in use. Open the [JS Console](http://localhost:9001), 
 login, then click on `ID Token`. This will display a rather cryptic string, which is
 the encoded token. Copy this value, making sure you select everything.
 
-In a different tab open the [JWT validation extension](http://localhost:8080/auth/realms/demo/jwt). 
-This is a custom extension to Keycloak that allows decoding a token as well as verifying the
+In a different tab open the [JWT site](https://jwt.io). 
+This is a site that allows decoding a token as well as verifying the
 signature of the token.
 
 What we're interested is in the header. The field `alg` will show what signing algorithm is
@@ -359,7 +358,7 @@ switch `Access Token Signature Algorithm` and `ID Token Signature Algorithm` to 
 Now go back to the JS Console and click on `Refresh`. This will use the Refresh Token to 
 obtain new updated ID and Access tokens.
 
-Click on `ID Token`, copy it and open the [JWT validation extension](http://localhost:8080/auth/realms/demo/jwt)
+Click on `ID Token`, copy it and open the [JWT site](https://jwt.io)
 again. Notice that now the tokens are signed with `ES256` instead of `RS256`.
 
 While you're looking at the `ID Token` take a note of the kid, try to remember the first few characters.
@@ -373,7 +372,7 @@ Click on `Providers`. From the drop-down select `ecdsa-generated`. Set the prior
 Save. As the priority is higher than the current active keys the new keys will be used next time
 tokens are signed.
 
-Now go back to the JS Console and clik on `Refresh`. Copy the token to the [JWT validation extension](http://localhost:8080/auth/realms/demo/jwt).
+Now go back to the JS Console and clik on `Refresh`. Copy the token to the [JWT site](https://jwt.io).
 Notice that the `kid` has now changed.
 
 What this does is provide a seamless way of changing signatures and keys. Currently logged-in users
@@ -382,12 +381,12 @@ without affecting any logged-in users.
 
 ## Sessions
 
-Make sure you have the [JS Console](http://localhost:8000) open in a tab and you're logged-in.
+Make sure you have the [JS Console](http://localhost:9001) open in a tab and you're logged-in.
 Open the [Keycloak Admin Console](http://localhost:8080/auth/admin/) in another tab.
 
 Find the user you are logged-in as and click on `Sessions`. Click on `Logout all session`.
 
-Go back to the [JS Console](http://localhost:8000) and click `Refresh`. Notice how you are 
+Go back to the [JS Console](http://localhost:9001) and click `Refresh`. Notice how you are 
 now longer authenticated.
 
 Not only can admins log out users, but users themselves can logout other sessions from the
@@ -398,7 +397,7 @@ account management console.
 Open the [Keycloak Admin Console](http://localhost:8080/auth/admin/). Click on `Events`
 and `Config`. Turn on `Save Events` and click `Save`.
 
-Go back to the [JS Console](http://localhost:8000) and click `Refresh`. Logout. Then
+Go back to the [JS Console](http://localhost:9001) and click `Refresh`. Logout. Then
 when you log in use the wrong password, then login with the correct password.
 
 Go back to the `Events` in the [Keycloak Admin Console](http://localhost:8080/auth/admin/)
@@ -430,7 +429,7 @@ Select `Magic Link` from the list. Once it's saved select `Required` for the `Ma
 Now to use this new flow when users login select `Bindings` and select `My Browser Flow` for the
 `Browser flow`.
 
-Open the [JS Console](http://localhost:8000) and click Logout. For the email enter your email
+Open the [JS Console](http://localhost:9001) and click Logout. For the email enter your email
 address and click `Log In`. Open your email and you should have a mail with a link which will
 authenticate you and bring you to the JS Console.
 
@@ -440,7 +439,7 @@ mark it as `Required`. You also need to register the WebAuthn required action.
 
 Select `Required Actions`, `Register`, then select `WebAuthn Register` and click `Ok`. 
 
-Open the [JS Console](http://localhost:8000) and click Logout. Login again. After you've done the
+Open the [JS Console](http://localhost:9001) and click Logout. Login again. After you've done the
 email based login you will be prompted to configure WebAuthn. You'll need a WebAuthn security key to try this out.
 
 ## Cool stuff we didn't cover!
